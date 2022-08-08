@@ -1,0 +1,42 @@
+{
+    "camera_topic": "/camera/image_raw",
+    "is_compressed": false,
+    
+    "recognize": {
+        "embed_path": "data/faces/default_embedding.pkl",
+        "model_path": "data/models/load_me_with_params.pkl",
+        "is_relative": true,
+
+        "train": {
+            "data": {
+                "photo_dir": "data/faces/photos",
+                "embed_dir": "data/faces/embeds",
+                "model_dir": "data",
+                "model_name": "buffalo_l",
+                "embed_path": "data/faces/embed/2022-08-07.pkl",
+                "is_relative": true
+            },
+            "specs": {
+                "accuracy_name": "total",
+                "epochs": 20,
+                "k_folds": 5,
+                "batch_size": 32,
+                "shuffle": true,
+                "device": "cpu",
+                "model": {
+                    "name": "FaceClassifierBasic"
+                },
+                "optimizer": {
+                    "name": "Adam",
+                    "lr": 0.001
+                },
+                "criterion": {
+                    "name": "BCEWithLogitsLoss"
+                } 
+            }
+        }
+    },
+
+    "detect": {},
+    "segment": {}
+}
