@@ -12,3 +12,5 @@ __pycache__
 
 # Data
 data/
+
+src/face_sense/mxnet_mtcnn_face_detection

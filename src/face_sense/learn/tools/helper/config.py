@@ -84,14 +84,7 @@ def build_criterion(criterion_info):
     """Builds a criterion based on the provided parameters.
 
     This method takes the dictionary with the criterion parameters and
-    returns the desired loss function. In the case of the loss called
-    "BCEWithLogitsWeighted", the weights were calculated based on the
-    number of their occurance in the file "annotations_top50.csv" inside
-    "data/processed/annotations/". Refer to the documentation of the
-    loss function for more information on how it works.
-
-    Note:
-        Please refer to the final report for the references.
+    returns the desired loss function.
 
     Args:
         criterion_info (dict): The loss parameters
@@ -102,12 +95,10 @@ def build_criterion(criterion_info):
     Raises:
         ValueError: If the name of the loss function is not recognized
     """
-    # Get the criterion name or use BCEWithLogitsLoss by default
-    criterion_name = criterion_info.pop("name", "BCEWithLogitsLoss")
+    # Get the criterion name or use CrossEntropyLoss by default
+    criterion_name = criterion_info.pop("name", "CrossEntropyLoss")
 
-    if criterion_name == "MultiLabelSoftMarginLoss":
-        return nn.MultiLabelSoftMarginLoss(**criterion_info) 
-    elif criterion_name == "BCEWithLogits":
-        return nn.BCEWithLogitsLoss(**criterion_info)
+    if criterion_name == "CrossEntropyLoss":
+        return nn.CrossEntropyLoss(**criterion_info)
     else:
         raise ValueError(f"Criterion with name {criterion_name} is invalid!")

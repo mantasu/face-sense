@@ -46,7 +46,7 @@ class Trainer:
         device = kwargs.pop("device", "cpu")
         model_name = kwargs.pop("model_name", "na")
         p_bar_prefix = kwargs.pop("p_bar_prefix", "")
-        accuracy_fn = kwargs.get("accuracy_fn", "total")
+        accuracy_fn = kwargs.get("accuracy_name", "total")
         model_dir = kwargs.pop("model_dir", None)
         is_relative = kwargs.pop("is_relative", True)
         performance_dir = kwargs.pop("performance_dir", None)
@@ -69,7 +69,7 @@ class Trainer:
 
         for e in progress_bar:
             # Update kwargs related to current progress bar
-            kwargs["p_bar_prefix"] = p_bar_prefix + f"({e}/{epochs}) "
+            kwargs["p_bar_prefix"] = p_bar_prefix + f"({e+1}/{epochs}) "
             kwargs["progress_bar"] = progress_bar
 
             # Training and evaluation iterations and get performance
@@ -126,7 +126,7 @@ class Trainer:
 
         for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
             # Add extra keyword argument for progress bar
-            kwargs["p_bar_prefix"] = f"[{fold}/{k_folds}] "
+            kwargs["p_bar_prefix"] = f"[{fold+1}/{k_folds}] "
 
             # Sample randomly from a list, no replacement
             train_sampler = SubsetRandomSampler(train_ids)
@@ -138,7 +138,7 @@ class Trainer:
 
             # Acquire the performance (train/test) history by training
             history = Trainer.train(train_loader, test_loader, *args, **kwargs)
-            fold_performance = {"train": history[0], "test": history[1]}
+            fold_performance.append({"train": history[0], "test": history[1]})
         
         if performance_dir is not None:
             # Generate path and save the performance in a .json file
@@ -178,7 +178,7 @@ class Trainer:
             args = (self.train_dataset, model, optimizer, loss_fn)
         
         # Also create a default model name with today's date if needed
-        config["model_name"] = config.get("model_name", date.today())
+        config["model_name"] = config.get("model_name", str(date.today()))
 
         return args, config
     
@@ -187,7 +187,7 @@ class Trainer:
         args, kwargs = self.prepare_for_training()
 
         if len(args) == 5:
-            # Sole train if test given
+            # Simple train if test given
             self.train(*args, **kwargs)
         else:
             # If only train dataset given, k-fold

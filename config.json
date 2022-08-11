@@ -1,11 +1,16 @@
 {
     "camera_topic": "/camera/image_raw",
-    "is_compressed": false,
+    "is_compressed": true,
     
     "recognize": {
-        "embed_path": "data/faces/default_embedding.pkl",
-        "model_path": "data/models/load_me_with_params.pkl",
+        "embed_path": "data/faces/embeds/2022-08-07.pkl",
+        "model_path": "data/models/2022-08-11.pth",
         "is_relative": true,
+        "model": {
+            "name": "FaceClassifierBasic",
+            "in_shape": 512,
+            "num_classes": 40
+        },
 
         "train": {
             "data": {
@@ -13,7 +18,7 @@
                 "embed_dir": "data/faces/embeds",
                 "model_dir": "data",
                 "model_name": "buffalo_l",
-                "embed_path": "data/faces/embed/2022-08-07.pkl",
+                "embed_path": "data/faces/embeds/2022-08-07.pkl",
                 "is_relative": true
             },
             "specs": {
@@ -24,14 +29,16 @@
                 "shuffle": true,
                 "device": "cpu",
                 "model": {
-                    "name": "FaceClassifierBasic"
+                    "name": "FaceClassifierBasic",
+                    "in_shape": 512,
+                    "num_classes": 40
                 },
                 "optimizer": {
                     "name": "Adam",
                     "lr": 0.001
                 },
                 "criterion": {
-                    "name": "BCEWithLogitsLoss"
+                    "name": "CrossEntropyLoss"
                 } 
             }
         }

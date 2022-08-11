@@ -6,3 +6,6 @@ torch
 imutils
 catkin_pkg
 onnxruntime
+opencv-python
+torch-mtcnn
+mxnet

@@ -26,7 +26,7 @@ class Engine():
         self.loss_fn = loss_fn
         self.device = device
     
-    def train(self, data_loader, accuracy_fn, **kwargs):
+    def train(self, data_loader, **kwargs):
         """Performs a training step for one epoch.
 
         This method takes the data loader to run the model training on,
@@ -36,17 +36,18 @@ class Engine():
         Args:
             data_loader (torch.utils.data.Dataloader): The data loader
                 to run the training on.
-            accuracy_fn (str|list): The accuracy(-ies) to check after
-                the parameter updates after one epoch if evaluation is
-                desired.
+            accuracy_fn (str|list): 
             **kwargs: The additional arguments for training:
                 * progress_bar (tqdm, optional): The progress bar to
                     update during training/evaluation. If not provided,
                     no progress bar will be updated. Defaults to None.
                 * update_every (int, optional): Every n iterations to
-                    update the average batch loss. Defaults to 10.
+                    update the running loss/accuracy. Defaults to 10.
                 * p_bar_prefix (str, optional): The prefix text for the
                     progress bar. Defaults to "".
+                * accuracy_fn (str|list, optional): The accuracy(-ies)
+                    to check after the parameter updates after one epoch
+                    if evaluation is desired. Defaults to "total".
                 * require_accuracy (bool, optional): Whether to compute
                     running accuracy. Defaults to True.
                 * require_evaluation (bool, optional): Whether to
@@ -59,6 +60,7 @@ class Engine():
         progress_bar = kwargs.get("progress_bar", 0)
         p_bar_prefix = kwargs.get("p_bar_prefix", "")
         update_every = kwargs.get("update_every", 10)
+        accuracy_fn = kwargs.get("accuracy_name", "total")
         require_accuracy = kwargs.get("require_accuracy", True)
         require_evaluation = kwargs.get("require_evaluation", True)
 
@@ -89,8 +91,8 @@ class Engine():
             running_loss += loss.item()
 
             if require_accuracy:
-                # Compute the running batch accuracy for current iter
-                running_acc += self.compute_batch_accuracy(output, y)
+                # Compute the running batch accuracy
+                running_acc += total_accuracy(output, y)
 
             if self.device == "cuda:0":
                 # Free up GPU memory space
@@ -98,8 +100,8 @@ class Engine():
             
             if (i + 1) % update_every == 0:
                 # Compute the average batch loss and accuracy
-                batch_loss = f"{running_loss / update_every:.4f}"
-                batch_acc = f"{running_acc / update_every:.2f} %"
+                batch_loss = f"{running_loss / update_every:.6f}"
+                batch_acc = f"{running_acc / update_every * 100:.2f} %"
                 batch_acc = batch_acc if require_accuracy else '-'
                 
                 if progress_bar is not None:
@@ -113,7 +115,7 @@ class Engine():
         
         if require_evaluation:
             # Get the final performance over the training set
-            performance = self.eval(data_loader, accuracy_fn)
+            performance = self.eval(data_loader, accuracy_name=accuracy_fn)
         else:
             if not isinstance(accuracy_fn, list):
                 # Make it a list for readability
@@ -124,7 +126,7 @@ class Engine():
 
         return performance
 
-    def eval(self, data_loader, accuracy_fn):
+    def eval(self, data_loader, **kwargs):
         """Evaluates the model on the provided data loader.
 
         This method takes the data loader, performs forward pass on it
@@ -139,6 +141,8 @@ class Engine():
         Returns:
             dict: A dictionary of the performances for each accuracy
         """
+        accuracy_fn = kwargs.get("accuracy_name", "total")
+
         if isinstance(accuracy_fn, str):
             # Generalize to single list
             accuracy_fn = [accuracy_fn]
@@ -174,12 +178,12 @@ class Engine():
                     torch.cuda.empty_cache()
 
             # Concat pred and real values
-            y_pred = torch.concat(y_pred)
-            y_real = torch.concat(y_real)
+            y_pred = torch.concat(ys_pred)
+            y_real = torch.concat(ys_real)
         
         # Calculate an accuracy score for each provided accuracy type
-        scores = {key: self.ACCURACY_MAP[key] for key in accuracy_fn}
-        scores["loss"] = final_loss / len(data_loader)
+        scores = {key: round(self.ACCURACY_MAP[key](y_pred, y_real), 2) for key in accuracy_fn}
+        scores["loss"] = round(final_loss / len(data_loader), 4)
         
         return scores
 
