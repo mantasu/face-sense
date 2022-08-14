@@ -7,7 +7,7 @@ from insightface.app import FaceAnalysis
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import CompressedImage, Image
 from face_sense.utils import load_dict, save_dict, verify_path
-from face_sense.learn.tools.helper.config import build_model
+from face_sense.learn.tools import build_model
 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics.pairwise import cosine_similarity

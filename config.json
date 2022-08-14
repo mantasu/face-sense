@@ -3,23 +3,48 @@
     "is_compressed": true,
     
     "recognize": {
-        "embed_path": "data/faces/embeds/2022-08-07.pkl",
-        "model_path": "data/models/2022-08-11.pth",
-        "is_relative": true,
-        "model": {
-            "name": "FaceClassifierBasic",
-            "in_shape": 512,
-            "num_classes": 40
+        "inference": {
+            "data": {
+                "embed_dir": "data/faces/embeds",
+                "model_dir": "data/models",
+                "embed_name": "newest",
+                "model_name": "newest",
+                "is_relative": true
+            },
+            "face_analysis": {
+                "model_name": "buffalo_l",
+                "model_dir": "data",
+                "is_relative": true,
+                "ctx_id": 0,
+                "det_size": [160, 160]
+            },
+            "model": {
+                "name": "FaceClassifierBasic",
+                "in_shape": 512,
+                "num_classes": 40
+            },
+            "tunable": {
+                "comparing_num": 5,
+                "cos_threshold": 0.8,
+                "prob_threshold": 0.85
+            }
         },
 
-        "train": {
+        "learn": {
             "data": {
                 "photo_dir": "data/faces/photos",
                 "embed_dir": "data/faces/embeds",
-                "model_dir": "data",
-                "model_name": "buffalo_l",
-                "embed_path": "data/faces/embeds/2022-08-07.pkl",
+                "model_dir": "data/models",
+                "perf_dir": "data/performance",
+                "embed_name": "newest",
                 "is_relative": true
+            },
+            "face_analysis": {
+                "model_name": "buffalo_l",
+                "model_dir": "data",
+                "is_relative": true,
+                "ctx_id": 0,
+                "det_size": [160, 160]
             },
             "specs": {
                 "accuracy_name": "total",
@@ -27,7 +52,9 @@
                 "k_folds": 5,
                 "batch_size": 32,
                 "shuffle": true,
-                "device": "cpu",
+                "device": "cpu"
+            },
+            "params": {
                 "model": {
                     "name": "FaceClassifierBasic",
                     "in_shape": 512,
@@ -42,8 +69,5 @@
                 } 
             }
         }
-    },
-
-    "detect": {},
-    "segment": {}
+    }
 }

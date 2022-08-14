@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from face_sense.learn.components import FaceClassifierBasic
+from face_sense.learn.specific import FaceClassifierBasic
 
 def get_train_components(config):
     """Gets the training parameters (model, optimizer, criterion)

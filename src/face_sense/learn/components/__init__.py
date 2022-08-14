@@ -1,1 +1,0 @@
-from face_sense.learn.components.face_classifier_basic import FaceClassifierBasic

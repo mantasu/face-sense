@@ -1,5 +1,5 @@
-from face_sense.learn.components.face_dataset import FaceDataset
-from face_sense.learn.tools.trainer import Trainer
+from face_sense.learn.specific import FaceDataset
+from face_sense.learn.general import Trainer
 from face_sense.utils import verify_path, load_dict
 
 def train_recognizer(config):
