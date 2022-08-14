@@ -33,6 +33,32 @@ def join(dir, filename, is_in_package=True):
 
     return verify_path(path, is_in_package)
 
+def join_by_kwd(path_dict, keyword):
+    """Joins the directory and the filename given their keyword.
+
+    Given a dictionary that contains path to the desired directory and
+    the desired filename, this method joins them into one path.
+
+    Note: `path_dict` should also contain an entry named "is_relative"
+        indicating whether the overall path is relative to the package
+        directory or is an absolute path.
+
+    Args:
+        path_dict (dict): The dictionary with keyword paths. For
+            instance, if keyword is "model", then `path_dict` should
+            contain "model_dir" and "model_name".
+        keyword (str): The keyword which the path is based on.
+
+    Returns:
+        str: A single path to the file within the specified directory
+    """
+    # Get dir, filename, is_rel params
+    dir = path_dict[f"{keyword}_dir"]
+    filename = path_dict[f"{keyword}_name"]
+    is_in_pkg = path_dict.get("is_relative", True)
+
+    return join(dir, filename, is_in_pkg)
+
 def verify_path(path, is_in_package=True):
     """Verifies the path
 
@@ -96,7 +122,7 @@ def load_dict(path):
 
     return py_dict
 
-def get_face_analysis(config):
+def get_app(config):
     """Prepares the face analysis object from insightface.
 
     Creates a face analysis object from insight face by loading the

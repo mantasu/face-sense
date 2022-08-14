@@ -11,7 +11,8 @@ def run_camera_viewer(config, freq=1):
     recognizer = Recognizer(config)
 
     while not rospy.is_shutdown():
-        # While not down
+        # While not shutdown
+        recognizer.publish()
         interval.sleep()
 
     # Destroy opencv window

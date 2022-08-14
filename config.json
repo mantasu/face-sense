@@ -5,8 +5,8 @@
     "recognize": {
         "inference": {
             "data": {
-                "embed_dir": "data/faces/embeds",
-                "model_dir": "data/models",
+                "embed_dir": "data/identities/embeds",
+                "model_dir": "data/models/recognizer",
                 "embed_name": "newest",
                 "model_name": "newest",
                 "is_relative": true
@@ -20,13 +20,14 @@
             },
             "model": {
                 "name": "FaceClassifierBasic",
+                "device": "cpu",
                 "in_shape": 512,
                 "num_classes": 40
             },
             "tunable": {
-                "comparing_num": 5,
-                "cos_threshold": 0.8,
-                "prob_threshold": 0.85
+                "sim_threshold": 0.35,
+                "prob_threshold": 0.85,
+                "num_to_compare": 5       
             }
         },
 
@@ -51,8 +52,7 @@
                 "epochs": 20,
                 "k_folds": 5,
                 "batch_size": 32,
-                "shuffle": true,
-                "device": "cpu"
+                "shuffle": true
             },
             "params": {
                 "model": {
@@ -66,7 +66,8 @@
                 },
                 "criterion": {
                     "name": "CrossEntropyLoss"
-                } 
+                },
+                "device": "cpu"
             }
         }
     }
