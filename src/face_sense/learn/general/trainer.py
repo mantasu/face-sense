@@ -6,12 +6,35 @@ from tqdm import tqdm
 from datetime import date
 from sklearn.model_selection import KFold
 from face_sense.utils import save_dict, verify_path
-from face_sense.learn.tools.engine import Engine
-from face_sense.learn.tools.helper import get_train_components
+from face_sense.learn.general.engine import Engine
+from face_sense.learn.tools.config import get_train_components
 from torch.utils.data import DataLoader, SubsetRandomSampler
 
 class Trainer:
+    """Trainer that performs the full training/evaluation loops."""
+
     def __init__(self, config, train_dataset, test_dataset=None):
+        """Initializes the Trainer
+
+        Takes the configuration dictionary, the training and optionally
+        the test dataset (if not provided, the training will be done on
+        k-folds) and trains the model as specified in the configuration
+        dictionary.
+
+        Args:
+            config (dict): The configuration dictionary with model, data
+                loader parameters, training specifications like epochs
+                etc. More info in the README.md under *Config* section
+                at "train" keyword.
+            train_dataset (torch.utils.data.Dataset): The training
+                dataset from where inputs and labels will be sampled.
+            test_dataset (torch.utils.data.Dataset, optional): The
+                testing/evaluation dataset from where inputs and labels
+                will be sampled to evaluate the model after every epoch.
+                If not provided, it will be a k-fold validation.
+                Defaults to None.
+        """
+        # Assign attributes
         self.config = config
         self.train_dataset = train_dataset
         self.test_dataset = test_dataset
@@ -21,7 +44,7 @@ class Trainer:
         """A static method to train the model based on the parameters.
 
         This method takes the parameters to perform training,
-        initializes default accuracy functions, and trains the model
+        parses additional keyword train arguments, and trains the model
         for the provided number of epochs, at each epoch calling the
         :func:`~engine.Engine.train` method and its evaluation method
         on the eval/test dataset. This method can optionally save the
@@ -106,6 +129,24 @@ class Trainer:
     
     @staticmethod
     def train_k_folds(dataset, *args, **kwargs):
+        """Performs k-fold training
+
+        This method takes the full dataset, the model parameters and
+        additional arguments for training, splits the dataset into
+        k-folds where the current fold is the training set, the other
+        folds are the evaluation set and runs a training loop on each.
+        Note that on every fold the same model is used thus the model
+        overfits. This is the correct case if the dataset is only the
+        training dataset or if overfitting is intended, e.g., for face
+        recognition.
+
+        Args:
+            dataset (dict): The full dataset (or just the training) that
+                will be split to k-folds for training.
+            *args: The model, the optimizer, and the loss function
+            **kwargs: 
+        """
+        # Parse all the available kwargs parameters
         batch_size = kwargs.pop("batch_size", 32)
         k_folds = kwargs.pop("k_folds", 5)
         seed = kwargs.pop("seed", 42)
@@ -122,6 +163,7 @@ class Trainer:
             # Initiate the k-fold object
             kfold = KFold(n_splits=k_folds)
 
+        # Initialize history
         fold_performance = []
 
         for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
@@ -153,19 +195,37 @@ class Trainer:
             torch.save(args[0].state_dict(), path)
     
     def prepare_for_training(self):
-        # Copy dict and generate model prams
-        config = copy.deepcopy(self.config)
-        model, optimizer, loss_fn = get_train_components(config)
+        """Prepares the trainer for training
 
-        # Delete unnecessary
-        del config["model"]
-        del config["optimizer"]
-        del config["criterion"]
+        This method simply prepares the arguments and keyword arguments
+        in the `self.config` attribute for training - it creates a
+        model, an optimizer etc.
+
+        Returns:
+            tuple: A tuple containing a tuple of training arguments
+                (train_loader, test_loader, model, optimizer, loss_fn)
+                for single training or (dataset, model, optimizer,
+                loss_fn) for k-fold training and a dictionary of
+                training keyword arguments
+        """
+        # Initialize config by copying specs config
+        config = copy.deepcopy(self.config["specs"])
+        
+        # Generate the directory/path parameters by reading from "data"
+        config.update({
+            "is_relative": self.config["data"].get("is_relative", True),
+            "model_dir": self.config["data"].get("model_dir", "data/models"),
+            "performance_dir": self.config["data"].get("performance_dir", "perf")
+        })
+
+        # Generate the training attributes: model, optimizer and loss_fn
+        model, optimizer, loss_fn = get_train_components(self.config["params"],
+                                                         config["device"])
 
         if self.test_dataset is not None:
             # Get the data loader params: bs and shuffle
-            batch_size = config.pop("batch_size", 32)
-            shuffle = config.pop("shuffle", True)
+            batch_size = config["specs"].pop("batch_size", 32)
+            shuffle = config["specs"].pop("shuffle", True)
 
             # Create train and test/validation dataset loaders to loop
             train_loader = DataLoader(self.train_dataset, batch_size, shuffle)
@@ -178,11 +238,17 @@ class Trainer:
             args = (self.train_dataset, model, optimizer, loss_fn)
         
         # Also create a default model name with today's date if needed
-        config["model_name"] = config.get("model_name", str(date.today()))
+        config["model_name"] = self.config["data"].get("model_name", str(date.today()))
 
         return args, config
     
     def run(self):
+        """Simply runs the training.
+
+        It first prepares the training parameters and if there are both
+        dataset loaders, it runs the conventional training loop,
+        otherwise it runs a k-fold training loop.
+        """
         # Prepare the training parameters
         args, kwargs = self.prepare_for_training()
 

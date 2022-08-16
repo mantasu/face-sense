@@ -132,13 +132,17 @@ def get_app(config):
     Args:
         config (dict): The configuration dictionary to prepare the face
             analysis app with the following parameters:
-            * model_name (str): The name of the model to load. Note that
-                the models provided by insightface cannot be used for
-                commercial purposes.
-            * model_dir (str): The directory which has the subdirectory
-                with the model's name containing model's files.
+            * model_dir (str): The directory where the embeddings model
+                is present or should be downloaded. Note that within
+                this directory `models` directory should exist or will
+                be created automatically where the actual model should
+                be located.
+            * model_name (str): The name of the model to load. If it is
+                not present within `models` subdirectory, it will be
+                downloaded automatically. Note that the models provided
+                by insightface cannot be used for commercial purposes.
             * is_relative (bool): Whether the relative path is in
-                package. Defaults to True.
+                package.
             * ctx_id (int): The GPU to use. If GPU is not available or
                 the value is lower than 0, CPU is used.
             * det_size (tuple(int, int)|list[int, int]): The detection

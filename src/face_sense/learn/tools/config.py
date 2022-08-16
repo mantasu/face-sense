@@ -2,27 +2,25 @@ import torch
 import torch.nn as nn
 from face_sense.learn.specific import FaceClassifierBasic
 
-def get_train_components(config):
+def get_train_components(config, device="cpu"):
     """Gets the training parameters (model, optimizer, criterion)
 
     This method creates objects for training/evaluation loop: the model,
     the optimizer and the loss function based on the information on how
     to generate them in the `config` dictionary.
 
-    Note:
-        The config dictionary must include `device` key specifying which
-        device will the model and the loss function use.
-
     Args:
         config (dict): The configuration dictionary
+        device (str, optional): The device specifying which device to
+            cast the model and the loss function. Defaults to "cpu".
 
     Returns:
         tuple: A tuple containing the components used in training
     """
-    # Get the model, optimizer and criterion from the config
-    model = build_model(config["model"]).to(config["device"])
+    # Get the model, optim and loss from the config
+    model = build_model(config["model"]).to(device)
     optimizer = build_optimizer(model, config["optimizer"])
-    loss_fn = build_criterion(config["criterion"]).to(config["device"])
+    loss_fn = build_criterion(config["criterion"]).to(device)
 
     return model, optimizer, loss_fn
 

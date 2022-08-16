@@ -1,10 +1,9 @@
 import torch
 from tqdm import tqdm
-from face_sense.learn.tools.helper.accuracy import *
+from face_sense.learn.tools.accuracy import *
 
 class Engine():
-    """Engine class that performs training and evaluation.
-    """
+    """Engine class that performs training and evaluation."""
 
     ACCURACY_MAP = {
         "total": total_accuracy

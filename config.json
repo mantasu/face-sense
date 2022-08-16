@@ -3,6 +3,11 @@
     "is_compressed": true,
     
     "recognize": {
+        "nodes": {
+            "info_topic": "/recognizer/face_info",
+            "drawable": ["box", "marks", "name", "bio"]
+        },
+
         "inference": {
             "data": {
                 "embed_dir": "data/identities/embeds",
@@ -22,7 +27,8 @@
                 "name": "FaceClassifierBasic",
                 "device": "cpu",
                 "in_shape": 512,
-                "num_classes": 40
+                "num_classes": 40,
+                "hidden_shape": [1024, 1024]
             },
             "tunable": {
                 "sim_threshold": 0.35,
@@ -33,9 +39,9 @@
 
         "learn": {
             "data": {
-                "photo_dir": "data/faces/photos",
-                "embed_dir": "data/faces/embeds",
-                "model_dir": "data/models",
+                "photo_dir": "data/identities/photos",
+                "embed_dir": "data/identities/embeds",
+                "model_dir": "data/models/recognizer",
                 "perf_dir": "data/performance",
                 "embed_name": "newest",
                 "is_relative": true
@@ -49,16 +55,19 @@
             },
             "specs": {
                 "accuracy_name": "total",
+                "seed": 42,
                 "epochs": 20,
                 "k_folds": 5,
                 "batch_size": 32,
-                "shuffle": true
+                "shuffle": true,
+                "device": "cpu"
             },
             "params": {
                 "model": {
                     "name": "FaceClassifierBasic",
                     "in_shape": 512,
-                    "num_classes": 40
+                    "num_classes": 40,
+                    "hidden_shape": [1024, 1024]
                 },
                 "optimizer": {
                     "name": "Adam",
@@ -66,8 +75,7 @@
                 },
                 "criterion": {
                     "name": "CrossEntropyLoss"
-                },
-                "device": "cpu"
+                }
             }
         }
     }
