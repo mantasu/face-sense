@@ -4,81 +4,82 @@ import random
 import warnings
 import numpy as np
 
-from face_sense.msg import FaceInfo
-
-from cv_bridge import CvBridge, CvBridgeError
-from sensor_msgs.msg import CompressedImage, Image
-from face_sense.utils import load_dict, join_by_kwd, get_app
-from face_sense.learn.tools import build_model
-
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics.pairwise import cosine_similarity
+
+from face_sense.learn.tools import build_model
+from face_sense.utils import load_dict, join_by_kwd, get_app
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 
 class Recognizer:
-    def __init__(self, config):        
-        self._init_tunable(config["recognize"]["inference"])
-        self._init_models(config["recognize"]["inference"])
-        self._init_data(config["recognize"]["inference"])
-        self._init_communication(config)
+    def __init__(self, config):
+        self.config = config
 
-        self.timer = rospy.get_time()
+        self.app = None
+        self.model = None
+        self.embeddings = None
+
+        self._init_tunable()
+        self.init_models(verbose=False)
+        self.init_data(verbose=False)
+
         self.identities = None
-        
-        self.info_publisher = rospy.Publisher(
-            "/recognizer/face_info", FaceInfo, queue_size=1
-        )
     
-    def _init_communication(self, config):
-        # A communication bridge
-        self.bridge = CvBridge()
-        self.win_name = "Camera Frames" 
-        camera_topic = config["camera_topic"]
-
-        if config["is_compressed"]:
-            # If compressed image message
-            image_type = CompressedImage
-            self.read_msg = self.bridge.compressed_imgmsg_to_cv2
-        else:
-            # If non-compressed
-            image_type = Image
-            self.read_msg = self.bridge.imgmsg_to_cv2
-        
-        self.cam_subscriber = rospy.Subscriber(
-            camera_topic, image_type, self.cam_callback, queue_size=1)
-    
-    def _init_tunable(self, config):
-        for key, val in config["tunable"].items():
+    def _init_tunable(self):
+        for key, val in self.config["tunable"].items():
             # Set key-val attribute
             setattr(self, key, val)
     
-    def _init_models(self, config):
+    def init_models(self, verbose=False):
         # Set the device if it is provided as one of model parameters
-        self.device = torch.device(config["model"].pop("device", "cpu"))
+        self.device = torch.device(self.config["model"].pop("device", "cpu"))
 
-        # Get the face analysis app and ID classifier
-        self.app = get_app(config["face_analysis"])
-        self.model = build_model(config["model"])
-
-        # Get the path to saved model params and load model
-        state_dict_path = join_by_kwd(config["data"], "model")
-        self.model.load_state_dict(torch.load(state_dict_path))
+        if self.app is None:
+            try:
+                self.app = get_app(self.config["face_analysis"])
+            except FileNotFoundError:
+                if verbose:
+                    rospy.logerr("Could not initialize Face Analysis app")
+                
+                self.app = None
         
-        # Set correct device, eval
-        self.model.to(self.device)
-        self.model.eval()
-        
-    def _init_data(self, config):
-        # Get the path to the embeddings file and load embeds
-        data = load_dict(join_by_kwd(config["data"], "embed"))
-        self.embeddings = torch.tensor(data["embeds"]).to(self.device)
+        if self.model is None:
+            try:
+                # Get the face analysis app and ID classifier
+                self.app = get_app(self.config["face_analysis"])
+                self.model = build_model(self.config["model"])
 
-        # Init and fit the label encoder
-        self.label_encoder = LabelEncoder()
-        self.labels = self.label_encoder.fit_transform(data["labels"])
-        self.labels = torch.tensor(self.labels).to(self.device)
+                # Get the path to saved model params and load model
+                state_dict_path = join_by_kwd(self.config["data"], "model")
+                self.model.load_state_dict(torch.load(state_dict_path))
+                
+                # Set correct device, eval
+                self.model.to(self.device)
+                self.model.eval()
+            except RuntimeError as e:
+                if verbose:
+                    rospy.logerr(f"Cannot load the desired model: {e}")
+                
+                self.model = None
+        
+    def init_data(self, verbose=False):
+        if self.embeddings is None:
+            try:
+                # Get the path to the embeddings file and load embeds
+                data = load_dict(join_by_kwd(self.config["data"], "embed"))
+                self.embeddings = torch.tensor(data["embeds"]).to(self.device)
+
+                # Init and fit the label encoder
+                self.label_encoder = LabelEncoder()
+                self.labels = self.label_encoder.fit_transform(data["labels"])
+                self.labels = torch.tensor(self.labels).to(self.device)
+            except FileNotFoundError:
+                if verbose:
+                    rospy.logerr("Unable to find the embeddings file")
+                
+                self.embeddings = None
 
     def compute_similarity(self, compare_embeddings, embedding):
         """Computes average similarity score between embeddings.
@@ -110,24 +111,7 @@ class Recognizer:
     def compute_score(self, similarity, probability):
         return ((similarity + 1) / 2 + probability) / 2
     
-    def cam_callback(self, data):
-        if rospy.get_time() - self.timer < 1:
-            print("No", rospy.get_time() - self.timer, end='\r')
-            return
-        else:
-            print()
-            self.timer = rospy.get_time()
-
-        try:
-            # Retrieve the image
-            frame = self.read_msg(data)
-        except CvBridgeError as e:
-            # Log the error
-            rospy.logerr(e)
-
-        self.identities = self.process_frame(frame)
-    
-    def process_frame(self, frame):
+    def process(self, frame):
         # Get faces and disable grad
         torch.set_grad_enabled(False)
         faces = self.app.get(frame)
@@ -172,17 +156,3 @@ class Recognizer:
             identities["ages"].append(face.age)
 
         return identities
-    
-    def publish(self):
-        if self.identities is None:
-            return
-        
-        face_info = FaceInfo()
-        face_info.boxes = np.array(self.identities["boxes"]).flatten().tolist()
-        face_info.marks = np.array(self.identities["marks"]).flatten().tolist()
-        face_info.names = self.identities["names"]
-        face_info.scores = self.identities["name_scores"]
-        face_info.genders = self.identities["genders"]
-        face_info.ages = self.identities["ages"]
-
-        self.info_publisher.publish(face_info)

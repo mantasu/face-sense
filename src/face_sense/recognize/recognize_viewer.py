@@ -50,8 +50,6 @@ class CameraViewer:
         self.identities["scores"] = data.scores
         self.identities["genders"] = data.genders
         self.identities["ages"] = data.ages
-
-        print(self.identities)
     
     def draw_on_frame(self, frame):
         if len(self.identities) == 0:

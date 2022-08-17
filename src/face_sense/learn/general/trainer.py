@@ -1,14 +1,15 @@
 import os
-import torch
 import copy
+import torch
 
 from tqdm import tqdm
 from datetime import date
 from sklearn.model_selection import KFold
-from face_sense.utils import save_dict, verify_path
-from face_sense.learn.general.engine import Engine
-from face_sense.learn.tools.config import get_train_components
 from torch.utils.data import DataLoader, SubsetRandomSampler
+
+from face_sense.learn.general.engine import Engine
+from face_sense.utils import save_dict, verify_path
+from face_sense.learn.tools.config import get_train_components
 
 class Trainer:
     """Trainer that performs the full training/evaluation loops."""

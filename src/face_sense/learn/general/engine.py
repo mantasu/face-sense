@@ -1,5 +1,4 @@
 import torch
-from tqdm import tqdm
 from face_sense.learn.tools.accuracy import *
 
 class Engine():

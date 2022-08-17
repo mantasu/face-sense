@@ -85,7 +85,6 @@ class FaceDataset(Dataset):
         # Verify and generate paths inside/outside pkg
         photo_dir = verify_path(photo_dir, is_relative)
         embed_dir = verify_path(embed_dir, is_relative)
-        model_dir = verify_path(model_dir, is_relative)
         image_paths = list(paths.list_images(photo_dir))
         
         # Get the face analysis app
@@ -115,6 +114,8 @@ class FaceDataset(Dataset):
         # Create a full path to the embeddings file and save the data
         embed_path = os.path.join(embed_dir, f"{date.today()}.pkl")
         save_dict(data, embed_path)
+
+        return embed_path
     
     @staticmethod
     def parse_embeds(embed_path, is_relative=True):

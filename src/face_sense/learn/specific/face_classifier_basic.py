@@ -18,14 +18,18 @@ class FaceClassifierBasic(nn.Module):
         """
         super().__init__()
 
-        # Create the ast linear layer and initialize some attributes
-        self.last = nn.Linear(hidden_shape.pop(), num_classes)
-        in_shapes = [in_shape] + hidden_shape[:-1]
-        self.blocks = []
+        # # Create the ast linear layer and initialize some attributes
+        # self.last = nn.Linear(hidden_shape[-1], num_classes)
+        # in_shapes = [in_shape] + hidden_shape[:-1]
+        # self.blocks = []
 
-        for num_in, num_out in zip(in_shapes, hidden_shape):
-            # Create a linear-relu-dropout sequential block and append
-            self.blocks.append(self._create_block(num_in, num_out))
+        # for num_in, num_out in zip(in_shapes, hidden_shape):
+        #     # Create a linear-relu-dropout sequential block and append
+        #     self.blocks.append(self._create_block(num_in, num_out))
+        
+        self.layer1 = self._create_block(in_shape, 1024)
+        self.layer2 = self._create_block(1024, 1024)
+        self.layer3 = nn.Linear(1024, num_classes)
     
     def _create_block(self, in_shape, out_shape):
         """Creates a feed-forward NN block.
@@ -61,11 +65,15 @@ class FaceClassifierBasic(nn.Module):
         Returns:
             torch.Tensor: Network outputs (logits) of shape (N, C)
         """
-        for block in self.blocks:
-            # Forward pass
-            x = block(x)
+        # for block in self.blocks:
+        #     # Forward pass
+        #     x = block(x)
         
-        # Last forward pass
-        x = self.last(x)
+        # # Last forward pass
+        # x = self.last(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
 
         return x

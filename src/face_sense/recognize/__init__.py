@@ -1,2 +1,1 @@
-import os
-import cv2
+from face_sense.recognize.recognizer import Recognizer
