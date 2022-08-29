@@ -154,8 +154,11 @@ def get_app(config):
     # Verify the model directory is a valid path in or out package
     root = verify_path(config["model_dir"], config["is_relative"])
 
+    # Set onnx runtime interface session providers in order
+    prov = ['CUDAExecutionProvider', 'CPUExecutionProvider']
+
     # Get the face analysis object and prepare for embeddings
-    app = FaceAnalysis(name=config["model_name"], root=root)
+    app = FaceAnalysis(name=config["model_name"], root=root, providers=prov)
     app.prepare(ctx_id=config["ctx_id"], det_size=tuple(config["det_size"]))
 
     return app

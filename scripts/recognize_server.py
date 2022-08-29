@@ -155,13 +155,15 @@ class RecognizeServer:
         return f"Training finished successfully"
     
     def recognize_once(self):
+        name = "Unknown"
+
         if self.frame is not None:
             identities = self.recognizer.process(self.frame)
-            name = identities["names"][0]
-            self.publish(identities)
-        else:
-            name = "Unknown"
-        
+
+            if len(identities["names"]) != 0:
+                name = identities["names"][0]
+                self.publish(identities)
+
         return f"Recognized {name}"
 
     def recognize_continuous(self):
