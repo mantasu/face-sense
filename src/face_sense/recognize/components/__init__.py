@@ -1,0 +1,2 @@
+from face_sense.recognize.components.goal_handler import RecognitionGoalHandler
+from face_sense.recognize.components.view_handler import RecognitionViewHandler

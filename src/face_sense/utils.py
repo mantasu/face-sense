@@ -3,6 +3,7 @@ import json
 import pickle
 import rospkg
 
+from pathlib import Path
 from insightface.app import FaceAnalysis
 
 def join(dir, filename, is_in_package=True):
@@ -26,7 +27,8 @@ def join(dir, filename, is_in_package=True):
     
     if filename in ["newest", "oldest"]:
         # Get the top item from a sorted list returned by listing a dir
-        filename = sorted(os.listdir(dir), reverse=filename=="newest")[0]
+        kwargs = {"key": os.path.getmtime, "reverse": filename=="newest"}
+        filename = sorted(Path(dir).iterdir(), **kwargs)[0]
     
     # Join the directory and the file
     path = os.path.join(dir, filename)

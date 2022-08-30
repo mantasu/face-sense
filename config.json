@@ -1,17 +1,21 @@
 {
     "camera_topic": "/camera/image_raw",
     "is_compressed": true,
+    "frequency": 30,
     
     "recognize": {
         "node": {
             "service_name": "fr_client_goal_server",
             "info_topic": "/recognizer/face_info",
+            "view_topic": "/recognizer/processed_img",
             "photo_dir": "data/identities/photos",
             "drawable": ["box", "marks", "name", "bio"],
+            "format": "jpg",
             "num_photos": 10,
             "is_relative": true,
+            "is_compressed": true,
             "process_interval": 1,
-            "viewer_window_name": "Camera Frames"
+            "worker_type": "command_line"
         },
 
         "inference": {

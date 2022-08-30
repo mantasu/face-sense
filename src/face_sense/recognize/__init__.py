@@ -1,1 +1,2 @@
-from face_sense.recognize.recognizer import Recognizer
+from face_sense.recognize.recognize_server import RecognizeServer
+from face_sense.recognize.recognize_client import RecognizeClient

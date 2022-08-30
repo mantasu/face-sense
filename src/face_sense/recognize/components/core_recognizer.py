@@ -13,36 +13,95 @@ from face_sense.utils import load_dict, join_by_kwd, get_app
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 
-class Recognizer:
+class CoreRecognizer:
+    """Main recognizer which can process the image with faces
+
+    This class is the main one to process the image to detect and
+    recognize the identities. Its main method ~CoreRecognizer.process
+    helps to do that. It is able to extract bounding boxes, landmarks,
+    predict gender and age as well as the name for the detected people
+    (faces).
+    """
     def __init__(self, config):
+        """Initializes the recognizer
+
+        Assigns config attributes and initializes face analysis and
+        classifier models along with embeddings representation. If
+        initialization is unsuccessful, they can be reinitialized. This
+        could happen, for example, if the model is not yet trained, thus
+        the recognizer should reinitialize models.
+
+        Args:
+            config (dict): The configuration dictionary for "inference"
+                parameters.
+        """
+        # Just assign config
         self.config = config
 
+        # Init attributes
         self.app = None
         self.model = None
         self.embeddings = None
+        self.identities = None
 
-        self._init_tunable()
+        # Init through reusable methods
+        self.init_tunable()
         self.init_models(verbose=False)
         self.init_data(verbose=False)
-
-        self.identities = None
+        
     
-    def _init_tunable(self):
+    def init_tunable(self):
+        """Initializes the tunable attributes for inference
+
+        Simply goes through the key value pairs in `self.config`
+        "tunable" sub-dictionary and assigns them as this class'
+        attributes. There are `3` tunable values:
+            * `sim_threshold` - threshold for similarity value. It is a
+                minimum value the similarity function should yield when
+                comparing the identified face with its counterparts in
+                the face database.
+            * `prob_threshold` - threshold for probability value. It is
+                a minimum value the model should achieve when
+                classifying which identity the captured face belongs to.
+            * `num_to_compare` - the number of counterpart faces in the
+                database the detected face to compare with to determine
+                the mean similarity value.
+        """
         for key, val in self.config["tunable"].items():
             # Set key-val attribute
             setattr(self, key, val)
     
     def init_models(self, verbose=False):
+        """Initializes the face analysis app and the classifier
+
+        This method tries to construct face analysis app and the
+        classifier with the desired parameters specified in
+        `self.config`. If anything fails, for instance, the model path
+        is not found, the object is not initialized and, optionally,
+        the error is printed that the initialization failed.
+
+        Note: face analysis app should be the same which generated the
+            embeddings file. This is to keep the embedding
+            representations the same during classification when the
+            extracted new embedding is compared against the ones in
+            the database (embeddings file).
+
+        Args:
+            verbose (bool, optional): Whether to log the error in case
+                the initialization fails. Defaults to False.
+        """
         # Set the device if it is provided as one of model parameters
         self.device = torch.device(self.config["model"].pop("device", "cpu"))
 
         if self.app is None:
             try:
+                # Try to initialize the face analysis/detection app
                 self.app = get_app(self.config["face_analysis"])
             except FileNotFoundError:
                 if verbose:
                     rospy.logerr("Could not initialize Face Analysis app")
                 
+                # Set app to None
                 self.app = None
         
         if self.model is None:
@@ -62,9 +121,22 @@ class Recognizer:
                 if verbose:
                     rospy.logerr(f"Cannot load the desired model: {e}")
                 
+                # Set model to None
                 self.model = None
         
     def init_data(self, verbose=False):
+        """Initializes the face embedding data
+
+        It looks for the embeddings file specified in `self.config` and
+        creates a tensor representation of it. It also creates a label
+        encoder to represent labels numerically in the embeddings file.
+        If the file is not fount, `self.embeddings` is set to None and,
+        optionally, the log error is printed.
+
+        Args:
+            verbose (bool, optional): Whether to log the error in case
+                the initialization fails. Defaults to False.
+        """
         if self.embeddings is None:
             try:
                 # Get the path to the embeddings file and load embeds
@@ -100,7 +172,7 @@ class Recognizer:
                 `compare_embeddings`.
 
         Returns:
-            float: A similarity score
+            float: A similarity score.
         """
         # Prepare the inputs as numpy arrays
         X = compare_embeddings.cpu().numpy()
@@ -109,9 +181,47 @@ class Recognizer:
         return cosine_similarity(X, Y).mean()
     
     def compute_score(self, similarity, probability):
+        """Computes a single confidence score
+
+        It is a utility function to represent the similarity score and
+        the probability score as a single value. It simply averages the
+        normalized values between 0 and 1.
+
+        Args:
+            similarity (float): The similarity score between -1 and 1.
+                How similar the captured face is to its counterparts in
+                the database. 
+            probability (float): The probability score between 0 and 1.
+                How probable the face belongs to its identity.
+
+        Returns:
+            float: A single confidence score between 0 and 11.
+        """
         return ((similarity + 1) / 2 + probability) / 2
     
     def process(self, frame):
+        """Processes the image to recognize faces
+
+        Takes an image, calls the face analysis app to extract the face
+        embeddings from it (along with values for face boundary boxes,
+        landmarks, presumable ages and genders) and calls the trained
+        classifier to identify which identity the face belongs to. It
+        then computes the similarity score between the corresponding
+        identity faces in the embeddings file and if both the similarity
+        and the probability scores are higher than the specified
+        threshold, the name of the identity, instead of "Unknown", is
+        appended to the list of recognized people.
+
+        Args:
+            frame (numpy.ndarray): The image represented as a numpy
+                array from which to extract the face embeddings.
+
+        Returns:
+            dict: A dictionary with keys indicating features, such as
+                "names", "genders", and values indicating identities,
+                i.e, lists where each entry is a feature that the key
+                specifies
+        """
         # Get faces and disable grad
         torch.set_grad_enabled(False)
         faces = self.app.get(frame)
