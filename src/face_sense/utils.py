@@ -24,11 +24,10 @@ def join(dir, filename, is_in_package=True):
     Returns:
         str: A single path to the file within the given directory
     """
-    
     if filename in ["newest", "oldest"]:
         # Get the top item from a sorted list returned by listing a dir
         kwargs = {"key": os.path.getmtime, "reverse": filename=="newest"}
-        filename = sorted(Path(dir).iterdir(), **kwargs)[0]
+        filename = os.path.basename(sorted(Path(dir).iterdir(), **kwargs)[0])
     
     # Join the directory and the file
     path = os.path.join(dir, filename)

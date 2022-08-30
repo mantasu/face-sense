@@ -1,7 +1,7 @@
 import torch.nn as nn
 
 class FaceClassifierBasic(nn.Module):
-    """SImple Face Classifier with a custom number of hidden layers"""
+    """Simple Face Classifier with a custom number of hidden layers"""
 
     def __init__(self, in_shape, num_classes, hidden_shape=[1024, 1024]):
         """Initializes teh face classifier.
@@ -18,8 +18,7 @@ class FaceClassifierBasic(nn.Module):
         """
         super().__init__()
 
-        # Create the ast linear layer and initialize some attributes
-        
+        # Create a list of input shapes for layers
         in_shapes = [in_shape] + hidden_shape[:-1]
         blocks = []
 
@@ -27,12 +26,9 @@ class FaceClassifierBasic(nn.Module):
             # Create a linear-relu-dropout sequential block and append
             blocks.append(self._create_block(num_in, num_out))
         
+        # Init a sequential nn, linear layer
         self.blocks = nn.Sequential(*blocks)
         self.last = nn.Linear(hidden_shape[-1], num_classes)
-        
-        # self.layer1 = self._create_block(in_shape, 1024)
-        # self.layer2 = self._create_block(1024, 1024)
-        # self.layer3 = nn.Linear(1024, num_classes)
     
     def _create_block(self, in_shape, out_shape):
         """Creates a feed-forward NN block.
@@ -67,17 +63,9 @@ class FaceClassifierBasic(nn.Module):
 
         Returns:
             torch.Tensor: Network outputs (logits) of shape (N, C)
-        """
-        # for block in self.blocks:
-        #     # Forward pass
-        #     x = block(x)
-        
+        """        
         # Last forward pass
         x = self.blocks(x)
         x = self.last(x)
-
-        # x = self.layer1(x)
-        # x = self.layer2(x)
-        # x = self.layer3(x)
 
         return x

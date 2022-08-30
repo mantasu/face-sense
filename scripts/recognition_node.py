@@ -1,3 +1,5 @@
+#!/usr/bin/env /home/mantas/catkin_ws/src/face_sense/venv/bin/python
+
 import rospy
 import argparse
 
@@ -55,7 +57,7 @@ def run_recognition(config_path, is_relative, frequency):
             # If server stopped
             client.stop()
         
-        if server.end:
+        if server.goal_handler.end:
             # If client stopped
             break
 

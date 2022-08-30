@@ -227,7 +227,7 @@ class CoreRecognizer:
         faces = self.app.get(frame)
 
         # Create a list of keys that identities will have, init lists
-        keys = ["boxes", "marks", "names", "name_scores", "genders", "ages"]
+        keys = ["boxes", "marks", "names", "scores", "genders", "ages"]
         identities = {k: [] for k in keys}
 
         for face in faces:
@@ -253,11 +253,11 @@ class CoreRecognizer:
             if sim > self.sim_threshold and prob.item() > self.prob_threshold:
                 # Append known name to the identities collection
                 identities["names"].append(self.label_encoder.classes_[i.item()])
-                identities["name_scores"].append(score)
+                identities["scores"].append(score)
             else:
                 # Append the unknown identity as well
                 identities["names"].append("Unknown")
-                identities["name_scores"].append(1 - score)
+                identities["scores"].append(1 - score)
 
             # Append properties to the identities collection
             identities["boxes"].append(face.bbox.astype(np.int))

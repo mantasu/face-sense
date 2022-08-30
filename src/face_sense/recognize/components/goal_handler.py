@@ -222,7 +222,7 @@ class RecognitionGoalHandler:
             while True:
                 if self.event_stop.is_set():
                     # If recognition should stop
-                    self.event_stop.reset()
+                    self.event_stop.clear()
                     break
                 
                 if rospy.get_time() - self.start_time < self.interval:

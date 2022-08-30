@@ -151,7 +151,7 @@ class Trainer:
         batch_size = kwargs.pop("batch_size", 32)
         k_folds = kwargs.pop("k_folds", 5)
         seed = kwargs.pop("seed", 42)
-        performance_dir = kwargs.pop("performance_dir", "data/performance")
+        performance_dir = kwargs.get("performance_dir", "data/performance")
         model_dir = kwargs.pop("model_dir", "data/models")
         is_relative = kwargs.get("is_relative", True)
         model_name = kwargs.get("model_name", "na")
@@ -216,7 +216,7 @@ class Trainer:
         config.update({
             "is_relative": self.config["data"].get("is_relative", True),
             "model_dir": self.config["data"].get("model_dir", "data/models"),
-            "performance_dir": self.config["data"].get("performance_dir", "perf")
+            "performance_dir": self.config["data"].get("performance_dir", "pf")
         })
 
         # Generate the training attributes: model, optimizer and loss_fn

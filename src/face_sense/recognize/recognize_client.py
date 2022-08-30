@@ -34,6 +34,7 @@ class RecognizeClient:
             response = proxy(order_id, order_argument)
         except rospy.ServiceException as e:
             rospy.logerr(f"Service call failed: {e}")
+            response = e
         
         return response
     

@@ -28,6 +28,7 @@ class RecognizeServer:
     def _init_communication_attributes(self):
         # A communication bridge
         self.bridge = CvBridge()
+        self.frame = None
 
         # Topic/service names to communicate
         self.cam_topic = self.config["camera_topic"]
@@ -44,11 +45,11 @@ class RecognizeServer:
             self.image_type_sub = Image
             self.msg2img = self.bridge.imgmsg_to_cv2
 
-        if self.config["node"]["is_compressed"]:
+        if self.config["recognize"]["node"]["is_compressed"]:
             # If compressed image message
             self.image_type_pub = CompressedImage
             self.img2msg = lambda x: self.bridge.cv2_to_compressed_imgmsg(
-                x, dst_format=self.config["node"]["format"])
+                x, dst_format=self.config["recognize"]["node"]["format"])
         else:
             # If non-compressed image
             self.image_type_pub = Image
@@ -75,6 +76,7 @@ class RecognizeServer:
         try:
             # Retrieve image from the message
             self.frame = self.msg2img(img_msg)
+            self.goal_handler.set_frame(self.frame)
         except CvBridgeError as e:
             # Log the error
             rospy.logerr(e)
@@ -96,7 +98,7 @@ class RecognizeServer:
             face_info.boxes = np.array(identities["boxes"]).flatten().tolist()
             face_info.marks = np.array(identities["marks"]).flatten().tolist()
             face_info.names = identities["names"]
-            face_info.scores = identities["name_scores"]
+            face_info.scores = identities["scores"]
             face_info.genders = identities["genders"]
             face_info.ages = identities["ages"]
 
@@ -107,6 +109,11 @@ class RecognizeServer:
         # Get the identities and draw on current frame
         identities = self.goal_handler.get_identities()
         img = self.view_handler.draw_on_frame(self.frame, identities)
+
+        if img is None:
+            # Publish an empty compressed/non-compressed image
+            self.view_publisher.publish(self.image_type_pub())
+            return
 
         try:
             # Compute img msg, publish

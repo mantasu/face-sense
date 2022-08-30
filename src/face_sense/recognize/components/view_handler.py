@@ -64,7 +64,7 @@ class RecognitionViewHandler:
         Returns:
             numpy.ndarray: A modified frame with drawn items on it
         """
-        if len(identities) == 0:
+        if identities is None or len(identities) == 0:
             # No changes
             return frame
         
@@ -110,7 +110,7 @@ class RecognitionViewHandler:
             return
         
         # Just draw a rectangle (boundary box) around the detected face
-        cv2.rectangle(img, (*box[0:1],), (*box[2:3],), *self.BOX_STYLE)
+        cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), *self.BOX_STYLE)
     
     def draw_marks(self, img, marks):
         """Draws 5 landmarks on the face

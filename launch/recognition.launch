@@ -1,0 +1,9 @@
+<launch>
+    <!-- Command line arguments for python argparser -->
+    <arg name="config_path" default="config.json"/>
+    <arg name="is_relative" default="true"/>
+
+    <!-- Launch the actual node, i.e., the python script with command-line arguments -->
+    <node name="recognition" pkg="face_sense" type="recognition_node.py" output="screen"
+     args="--config-path $(arg config_path) --is-relative $(arg is_relative)"/>
+</launch>

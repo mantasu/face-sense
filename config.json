@@ -7,7 +7,7 @@
         "node": {
             "service_name": "fr_client_goal_server",
             "info_topic": "/recognizer/face_info",
-            "view_topic": "/recognizer/processed_img",
+            "view_topic": "/recognizer/image_processed",
             "photo_dir": "data/identities/photos",
             "drawable": ["box", "marks", "name", "bio"],
             "format": "jpg",
@@ -52,7 +52,7 @@
                 "photo_dir": "data/identities/photos",
                 "embed_dir": "data/identities/embeds",
                 "model_dir": "data/models/recognizer",
-                "perf_dir": "data/performance",
+                "performance_dir": "data/performance",
                 "embed_name": "newest",
                 "is_relative": true
             },
