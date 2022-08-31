@@ -6,12 +6,35 @@ from face_sense.learn.general import Trainer
 from face_sense.learn.specific import FaceDataset
 from face_sense.recognize.components.core_recognizer import CoreRecognizer
 
-
-# Model specified for Face App should be trained separately, should it
-# be used for commercial purposes. Otherwise, any valid specification
-# from [model zoo](link) is fine as the model will be downloaded automatically.
-
 class RecognitionGoalHandler:
+    """Handles recognition goals
+
+    This class has the main method ~RecognitionGoaHandler.handle_order
+    which handles a recognition goal based on its order ID and an
+    optional order argument. Currently the following IDs are accepted:
+        * `0` - generates a set of images and stores them in the
+            identity folder. This order also takes an additional string
+            argument which should be the name of the identity to capture
+            the photos of.
+        * `1` - generates a face embeddings file which contains face
+            embeddings from the identity folder. It is based on the
+            face analysis app which is based on the specified face
+            detection/analysis model.
+        * `2` - trains the face classifier to recognize face embedding
+            given the embeddings dataset.
+        * `3` - recognizes face from the given image once. Given the
+            face app specification and the classifier specification, it
+            extracts information about the face, such as name, bounding
+            box, age etc. Multiple faces are supported.
+        * `4` - recognizes the face in the renewing images continuously.
+             Given the face app specification and the classifier
+             specification, a thread is created where every specified
+             interval of time information about the face is extracted.
+             Multiple faces are supported.
+        * `5` - exits the recognition process. It is only an indicator
+            for upper classes that there should be no more goals
+            handled.
+    """
     def __init__(self, config):
         """Initializes the recognition goal handler
 
