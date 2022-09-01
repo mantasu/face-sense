@@ -1,4 +1,4 @@
-#!/usr/bin/env /home/mantas/catkin_ws/src/face_sense/venv/bin/python
+#!/usr/bin/env python
 
 import rospy
 import argparse

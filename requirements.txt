@@ -3,6 +3,7 @@ Cython
 insightface >= 0.6.2
 rospy
 torch
+rospkg
 imutils
 catkin_pkg
 onnxruntime
