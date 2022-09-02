@@ -4,9 +4,7 @@
 
 This package provides a client-serer interface via ROS to control face-sensing features like face detection and face recognition. There must be a topic to which raw camera images (compressed/uncompressed) are published which are taken to process face features in real time.
 
-> Note: ROS Noetic and Python 3.8 was used to build this package
-
-> 
+> This work is influenced by [Face Recognition](https://github.com/procrob/face_recognition) and [Face Recognition with InsightFace](https://github.com/tuna-date/Face-Recognition-with-InsightFace) repositories.
 
 ## Structure
 
@@ -23,7 +21,7 @@ This is the default data + dataset structure used (paths can be specified elsewh
 
 ```bash
 ├── data
-│   ├── identities      # People Identity data
+│   ├── identities      # People identity data
 │   │   ├── embeds      # Face embedding files (.pkl)
 │   │   └── photos      # Sub-directories with identity photos
 │   │
@@ -100,6 +98,7 @@ $ chmod +x scripts/recognition_node.py
 
 Reminder: once cloned into `catkin_ws/src/face-sense`, don't forget to run `catkin_make` in `catkin_ws` directory!
 
+> Note: ROS Noetic and Python 3.8 was used to build this package
 
 ## Running
 
@@ -144,7 +143,7 @@ terminal. The following goals are accepted:
 * `format` - the format of the processed image to send. Only works if `is_compressed` is set to `true`
 * `process_interval` - the interval (in seconds) at which a current received frame is processed by the recognition methods
 
-#### Inference
+### Inference
 
 **Data**
 * `embed_dir` - the path to the directory which contains `.pkl` files of face embeddings (generated through face analysis app)
@@ -172,7 +171,7 @@ terminal. The following goals are accepted:
 * `prob_threshold` - threshold for probability value. It is a minimum value the model should achieve when classifying which identity the captured face belongs to. Otherwise, the detected face will be labeled as "Unknown".
 * `num_to_compare` - the number of counterpart faces in the database the detected face to compare with to determine the mean similarity value.
 
-#### Learn
+### Learn
 
 **Data**
 * `photo_dir`: the path to the directory of sub-directories with identity photos. Each sub-directory corresponds to a single identity and is named accordingly. Each sub-directory contains _1 or more_ pictures of that identity's face,
