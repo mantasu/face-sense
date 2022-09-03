@@ -87,7 +87,7 @@ $ pip install numpy==1.19.4
 $ pip install opencv-python==4.6.0.66
 ```
 
-If you want GPU support for _onnx_ (if _cuda_ and _cudnn_ versions are compatible), please uninstall `onnxruntime` and install `onnxruntime-gpu`. Just note that for some systems like **Jetson** there may be no repositories to install from in which case follow the installation procedure [here](https://elinux.org/Jetson_Zoo#ONNX_Runtime) (with manual wheel but note that for some technical reasons and poor version compatibility you may need to reinstall `numpy==1.19.4`).
+If you want GPU support for _onnx_ (if [cuda](https://developer.nvidia.com/cuda-toolkit) and [cudnn](https://developer.nvidia.com/cudnn) versions are compatible), please uninstall `onnxruntime` and install `onnxruntime-gpu`. Just note that for some systems like **Jetson** there may be no repositories to install from in which case follow the installation procedure [here](https://elinux.org/Jetson_Zoo#ONNX_Runtime) (with manual wheel but note that for some technical reasons and poor version compatibility you may need to reinstall `numpy==1.19.4`).
 
 ### System
 
