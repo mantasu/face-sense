@@ -45,7 +45,7 @@ To install the dependencies, it is recommended that you set-up a virtual environ
 $ sudo apt-get install python3-venv
 ```
 
-Then, within the cloned `scf4-control` directory, create the virtual environment and source into it (all the packages will then be installed there and if something gets messed up, you can safely remove the `venv` directory and recreate it):
+Then, within the cloned `face-sense` directory, create the virtual environment and source into it (all the packages will then be installed there and if something gets messed up, you can safely remove the `venv` directory and recreate it):
 
 ```shell
 $ python -m venv venv
